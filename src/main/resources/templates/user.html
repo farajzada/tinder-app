@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dating App - Profile</title>
+</head>
+<body>
+<h2 th:text="${profile.name}">Name</h2>
+<img th:src="${profile.photoUrl}" width="300" alt="Profile Image"/>
+
+<form method="post" action="/users">
+    <input type="hidden" name="profileId" th:value="${profile.id}" />
+    <button type="submit" name="liked" value="true">Yes</button>
+    <button type="submit" name="liked" value="false">No</button>
+</form>
+</body>
+</html>
