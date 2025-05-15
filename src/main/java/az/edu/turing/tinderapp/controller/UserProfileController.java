@@ -6,18 +6,17 @@ import az.edu.turing.tinderapp.domain.repository.UserLikeRepository;
 import az.edu.turing.tinderapp.domain.repository.UserProfileRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
-import org.springframework.ui.Model;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
 public class UserProfileController {
+
     private final UserProfileRepository profileRepository;
     private final UserLikeRepository userLikeRepository;
 
@@ -58,4 +57,25 @@ public class UserProfileController {
 
         return "redirect:/users";
     }
+
+    @GetMapping("/liked")
+    public String showLikedProfiles(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null) {
+            userId = 1L;
+            session.setAttribute("userId", userId);
+        }
+
+        List<UserLikeEntity> likes = userLikeRepository.findByLikerIdAndLikedTrue(userId);
+
+        List<UserProfileEntity> likedProfiles = likes.stream()
+                .map(like -> profileRepository.findById(like.getLikedId()).orElse(null))
+                .filter(Objects::nonNull)
+                .toList();
+
+        model.addAttribute("likedProfiles", likedProfiles);
+        return "liked";
+    }
+
 }
