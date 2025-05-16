@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -23,19 +26,30 @@ public class UserProfileController {
     private int currentIndex = 0;
 
     @GetMapping("/users")
-    public String getUser(Model model) {
-        List<UserProfileEntity> profiles = profileRepository.findAll();
-        if (profiles.isEmpty()) {
-            return "no-profiles";
+    public String getUser(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            userId = 1L;
+            session.setAttribute("userId", userId);
         }
 
-        if (currentIndex >= profiles.size()) {
-            currentIndex = 0;
-        }
+        List<UserProfileEntity> allProfiles = profileRepository.findAll();
+        List<UserLikeEntity> likes = userLikeRepository.findByLikerId(userId);
 
-        UserProfileEntity current = profiles.get(currentIndex++);
-        model.addAttribute("profile", current);
-        return "user";
+        Set<Long> alreadySeen = likes.stream()
+                .map(UserLikeEntity::getLikedId)
+                .collect(Collectors.toSet());
+
+        Optional<UserProfileEntity> nextProfile = allProfiles.stream()
+                .filter(p -> !alreadySeen.contains(p.getId()))
+                .findFirst();
+
+        if (nextProfile.isPresent()) {
+            model.addAttribute("profile", nextProfile.get());
+            return "user";
+        } else {
+            return "redirect:/liked"; // hamısına baxılıbsa
+        }
     }
 
     @PostMapping("/users")
@@ -49,11 +63,19 @@ public class UserProfileController {
             session.setAttribute("userId", userId);
         }
 
-        userLikeRepository.save(UserLikeEntity.builder()
-                .likerId(userId)
-                .likedId(profileId)
-                .liked(liked)
-                .build());
+        Optional<UserLikeEntity> existingLike = userLikeRepository.findByLikerIdAndLikedId(userId, profileId);
+
+        if (existingLike.isPresent()) {
+            UserLikeEntity likeEntity = existingLike.get();
+            likeEntity.setLiked(liked);
+            userLikeRepository.save(likeEntity);
+        } else {
+            userLikeRepository.save(UserLikeEntity.builder()
+                    .likerId(userId)
+                    .likedId(profileId)
+                    .liked(liked)
+                    .build());
+        }
 
         return "redirect:/users";
     }
