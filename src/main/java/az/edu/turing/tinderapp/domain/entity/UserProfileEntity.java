@@ -11,7 +11,6 @@ import lombok.*;
 @Table(name = "user_profiles")
 public class UserProfileEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "user_name",nullable = false)
