@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mesajlar</title>
+</head>
+<body>
+<h2>Mesajlaşma</h2>
+
+<div th:each="m : ${messages}">
+    <p>
+        <strong th:text="${m.senderId == userId} ? 'Sən:' : 'O:'"></strong>
+        <span th:text="${m.text}"></span>
+        <em th:text="${m.timestamp}"></em>
+    </p>
+</div>
+
+<form method="post" th:action="@{/messages/{id}(id=${receiverId})}">
+    <input type="text" name="text" placeholder="Mesajınızı yazın..." required/>
+    <button type="submit">Göndər</button>
+</form>
+
+<a href="/liked">Geri</a>
+</body>
+</html>
