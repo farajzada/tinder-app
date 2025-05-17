@@ -29,8 +29,7 @@ public class UserProfileController {
     public String getUser(Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            userId = 1L;
-            session.setAttribute("userId", userId);
+            return "redirect:/login";
         }
 
         List<UserProfileEntity> allProfiles = profileRepository.findAll();
@@ -40,15 +39,17 @@ public class UserProfileController {
                 .map(UserLikeEntity::getLikedId)
                 .collect(Collectors.toSet());
 
+        // ✅ Öz profilini göstərməmək üçün filtrə əlavə:
         Optional<UserProfileEntity> nextProfile = allProfiles.stream()
                 .filter(p -> !alreadySeen.contains(p.getId()))
+                .filter(p -> !p.getId().equals(userId)) // ⛔ özünü çıxar
                 .findFirst();
 
         if (nextProfile.isPresent()) {
             model.addAttribute("profile", nextProfile.get());
             return "user";
         } else {
-            return "redirect:/liked"; // hamısına baxılıbsa
+            return "redirect:/liked";
         }
     }
 

@@ -6,6 +6,7 @@ import az.edu.turing.tinderapp.domain.repository.UserLoginRepository;
 import az.edu.turing.tinderapp.domain.repository.UserProfileRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import java.util.Optional;
 public class LoginController {
     private final UserLoginRepository userLoginRepository;
     private final UserProfileRepository profileRepository;
+    private final RedisTemplate<String, Long> redisTemplate;
 
 
     @GetMapping("/login")
